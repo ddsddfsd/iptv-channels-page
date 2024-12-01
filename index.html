@@ -17,51 +17,18 @@
 </head>
 <body>
     <h1>IPTV Player</h1>
-    <select id="channelList" onchange="playStream()">
-        <option value="">Select a channel</option>
-    </select>
     <video id="videoPlayer" controls width="640" height="360">
         Your browser does not support the video tag.
     </video>
+    <br>
+    <button onclick="playStream()">Play IPTV</button>
     <script>
-        // URL de la lista M3U
-        const m3uURL = 'https://tuusuario.github.io/tu-repositorio/channels.m3u';
-
-        // Cargar la lista M3U
-        async function loadM3U() {
-            const response = await fetch(m3uURL);
-            const data = await response.text();
-            parseM3U(data);
-        }
-
-        // Parsear la lista M3U
-        function parseM3U(m3u) {
-            const lines = m3u.split('\n');
-            const channelList = document.getElementById('channelList');
-            let currentChannelName = '';
-
-            lines.forEach(line => {
-                if (line.startsWith('#EXTINF')) {
-                    currentChannelName = line.split(',')[1].trim();
-                } else if (line.startsWith('http') || line.startsWith('https')) {
-                    const option = document.createElement('option');
-                    option.value = line.trim();
-                    option.textContent = currentChannelName || 'Unnamed Channel';
-                    channelList.appendChild(option);
-                }
-            });
-        }
-
-        // Reproducir el canal seleccionado
         function playStream() {
             const videoPlayer = document.getElementById('videoPlayer');
-            const channelList = document.getElementById('channelList');
-            videoPlayer.src = channelList.value;
+            // Reemplaza con tu URL de lista M3U
+            videoPlayer.src = "http://ky-iptv.com:25461/playlist/2436253292/9883833296/m3u";
             videoPlayer.play();
         }
-
-        // Cargar la lista al inicio
-        loadM3U();
     </script>
 </body>
 </html>
