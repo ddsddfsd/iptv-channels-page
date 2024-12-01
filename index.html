@@ -12,23 +12,89 @@
         }
         video {
             margin-top: 20px;
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+        }
+        select {
+            width: 100%;
+            max-width: 640px;
+            margin: 10px auto;
+            padding: 10px;
         }
     </style>
 </head>
 <body>
     <h1>IPTV Player</h1>
-    <video id="videoPlayer" controls width="640" height="360">
+    <select id="channelList" onchange="playStream()">
+        <option value="">Select a channel</option>
+    </select>
+    <video id="videoPlayer" controls>
         Your browser does not support the video tag.
     </video>
-    <br>
-    <button onclick="playStream()">Play IPTV</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
+        // URL de la lista M3U (puedes cambiar a tu URL)
+        const m3uURL = "https://cors-anywhere.herokuapp.com/http://ky-iptv.com:25461/playlist/2436253292/9883833296/m3u";
+
+        // Cargar la lista M3U al inicio
+        async function loadM3U() {
+            try {
+                const response = await fetch(m3uURL);
+                const data = await response.text();
+                parseM3U(data);
+            } catch (error) {
+                alert("Error al cargar la lista M3U: " + error.message);
+            }
+        }
+
+        // Parsear la lista M3U y llenar el selector
+        function parseM3U(m3u) {
+            const lines = m3u.split('\n');
+            const channelList = document.getElementById('channelList');
+            let currentChannelName = '';
+
+            lines.forEach(line => {
+                if (line.startsWith('#EXTINF')) {
+                    currentChannelName = line.split(',')[1].trim();
+                } else if (line.startsWith('http') || line.startsWith('https')) {
+                    const option = document.createElement('option');
+                    option.value = line.trim();
+                    option.textContent = currentChannelName || 'Unnamed Channel';
+                    channelList.appendChild(option);
+                }
+            });
+        }
+
+        // Reproducir el canal seleccionado
         function playStream() {
             const videoPlayer = document.getElementById('videoPlayer');
-            // Reemplaza con tu URL de lista M3U
-            videoPlayer.src = "http://ky-iptv.com:25461/playlist/2436253292/9883833296/m3u";
-            videoPlayer.play();
+            const channelList = document.getElementById('channelList');
+            const streamURL = channelList.value;
+
+            if (!streamURL) {
+                alert("Selecciona un canal");
+                return;
+            }
+
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(streamURL);
+                hls.attachMedia(videoPlayer);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    videoPlayer.play();
+                });
+            } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                videoPlayer.src = streamURL;
+                videoPlayer.play();
+            } else {
+                alert("Tu navegador no soporta HLS.");
+            }
         }
+
+        // Cargar la lista al inicio
+        loadM3U();
     </script>
 </body>
 </html>
